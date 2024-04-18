@@ -1,0 +1,279 @@
+---
+title: "Title: COVID-19 Vaccination Progress Across Countries"
+author: "Okeke Ebubechukwu Samuel Student ID: 100784002"
+date: "2024-03-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales) # For percentage labels
+library(ggthemes) # For additional themes
+
+
+```
+```{r}
+    # Clear all previous R objects and load the new data
+rm(list = ls())
+vaccine_data <- read.csv("C:/info vis/project/Worldwide Vaccine Data.csv")
+```
+
+Data Manipulation
+```{r}
+
+# Reading the vaccination data into a dataframe
+vaccine_data <- read.csv("C:/info vis/project/Worldwide Vaccine Data.csv")
+
+colnames(vaccine_data)
+
+# Adding new columns for the percentage point difference between those vaccinated and those fully vaccinated
+vaccine_data <- vaccine_data %>%
+  mutate(
+    percent_point_diff_vaccinated_fully = `X..of.population.vaccinated` - `X..of.population.fully.vaccinated`
+  )
+
+# Using filter to select countries with a high percentage of fully vaccinated individuals
+high_vaccination_countries <- vaccine_data %>%
+  filter(`X..of.population.fully.vaccinated` > 75)
+
+# Using arrange to sort countries by percentage of fully vaccinated individuals in descending order
+sorted_vaccine_data <- vaccine_data %>%
+  dplyr::arrange(desc(`X..of.population.fully.vaccinated`))
+
+# Print the head of the manipulated data frames to see the changes
+head(vaccine_data)
+head(high_vaccination_countries)
+head(sorted_vaccine_data)
+```
+Discussions
+For this analysis, I have chosen a dataset containing information on COVID-19 vaccination progress across various countries. The dataset includes data on the number of doses administered per 100 people, total doses administered, percentage of population vaccinated, and percentage of population fully vaccinated for each country.
+
+The dataset is crucial in understanding the global efforts to combat the COVID-19 pandemic through vaccination. It provides insights into which countries have made significant progress in vaccinating their populations and which countries may need more support or resources to improve their vaccination rates.
+
+For this analysis, I have chosen a dataset containing information on COVID-19 vaccination progress across various countries. The dataset includes data on the number of doses administered per 100 people, total doses administered, percentage of population vaccinated, and percentage of population fully vaccinated for each country.
+
+The dataset is crucial in understanding the global efforts to combat the COVID-19 pandemic through vaccination. It provides insights into which countries have made significant progress in vaccinating their populations and which countries may need more support or resources to improve their vaccination rates.
+
+In my analysis, I aim to explore the following questions:
+
+1)How do vaccination rates vary across different countries?
+2)Is there a correlation between the percentage of population vaccinated and the level of development of a country?
+3)Which countries have achieved higher rates of full vaccination compared to others?
+4)Are there any geographical patterns or trends in vaccination progress?
+
+To answer these questions, I will visualize the data using plots such as bar charts, scatter plots, and choropleth maps. These visualizations will help in identifying trends, outliers, and patterns in the vaccination data.
+
+The plots will also facilitate comparisons between countries and regions, allowing us to gain a comprehensive understanding of the global vaccination landscape. Additionally, I will conduct statistical analysis to quantify the relationships between different variables and draw meaningful conclusions from the data.
+
+Overall, this analysis aims to provide valuable insights into the progress and challenges of COVID-19 vaccination efforts worldwide
+
+References:
+
+Dataset Source:https://www.kaggle.com/datasets/anandhuh/latest-worldwide-vaccine-data
+
+
+Piechart
+```{r}
+
+# Assuming vaccine_data is already created as shown in your previous message
+vaccine_data <- data.frame(
+  country = c("Afghanistan", "Albania", "Algeria", "Angola", "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan"),
+  doses_per_100 = c(33, 106, 35, 74, 252, 73, 164, 251, 228, 138),
+  total_doses = c(12526397, 3025728, 15267442, 23701049, 113272665, 2150112, 174215, 63634307, 20263306, 13857111),
+  percent_vaccinated = c(30, 47, 18, 47, 92, 38, 85, 88, 78, 54),
+  percent_fully_vaccinated = c(28, 44, 15, 26, 84, 33, 79, 85, 77, 49)
+)
+
+# Calculate percentages for the pie chart
+vaccine_data$for_pie <- vaccine_data$percent_fully_vaccinated / sum(vaccine_data$percent_fully_vaccinated)
+
+# Create the pie chart
+library(ggplot2)
+
+ggplot(vaccine_data, aes(x = "", y = for_pie, fill = country)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  scale_fill_brewer(palette = "Set3") +
+  labs(title = "% of Population Fully Vaccinated by Country") +
+  geom_text(aes(label = sprintf("%.1f%%", for_pie*100)), position = position_stack(vjust = 0.5))
+
+```
+Barchart
+```{r}
+# Load the necessary libraries
+library(ggplot2)
+library(dplyr)
+
+# Assuming your dataset is stored in `vaccine_data`
+vaccine_data <- data.frame(
+  country = c("Afghanistan", "Albania", "Algeria", "Angola", "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde", "Central African Republic", "Chad", "Chile", "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba", "Curaçao", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominican Rep.", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "French Polynesia", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Ivory Coast", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Lithuania", "Luxembourg", "Macau", "Madagascar", "Mainland China", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Mauritania", "Mauritius", "Mexico", "Moldova", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nepal", "Netherlands", "New Caledonia", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Macedonia", "Norway", "Oman", "Pakistan", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Republic of the Congo", "Romania", "Russia", "Rwanda", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "São Tomé and Príncipe", "Saudi Arabia", "Senegal", "Serbia", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "U.A.E.", "U.K.", "Uganda", "Ukraine", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "West Bank & Gaza", "Yemen", "Zambia", "Zimbabwe"),
+  percent_fully_vaccinated = c(28, 44, 15, 26, 84, 33, 79, 85, 77, 49, 43, 75, 79, 54, 68, 80, 57, 23, 89, 54, 26, 62, 83, 99, 30, 16, 0.2, 89, 12, 84, 56, 41, 23, 93, 73, 47, 7.8, 85, 55, 88, 63, 54, 65, 82, 31, 57, 82, 40, 67, 16, 64, 43, 33, 72, 79, 79, 67, 12, 19, 34, 76, 30, 71, 35, 42, 26, 21, 49, 2.1, 59, 91, 64, 80, 70, 65, 71, 20, 82, 68, 80, 45, 25, 82, 45, 57, 21, 63, 45, 79, 21, 73, 68, 35, 44, 76, 18, 67, 75, 99, 7.3, 91, 20, 86, 73, 13, 94, 34, 86, 65, 40, 67, 46, 64, 61, 51, 21, 84, 69, 64, 84, 91, 23, 30, 40, 76, 61, 61, 75, 3.5, 50, 87, 68, 60, 87, 99, 12, 42, 55, 73, 30, 29, 90, 48, 74, 8.3, 47, 44, 90, 47, 59, 38, 42, 36, 86, 20, 87, 68, 19, 41, 74, 70, 13, 87, 55, 50, 77, 61, 18, 74, 51, 55, 64, 62, 99, 76, 29, 34, 68, 84, 53, 44, 52, 89, 38, 2.6, 48, 32)
+)
+
+# Create a summary of the top 10 countries by percent fully vaccinated
+top_countries <- vaccine_data %>%
+  arrange(desc(percent_fully_vaccinated)) %>%
+  head(10)
+
+# Create the bar chart
+ggplot(top_countries, aes(x = reorder(country, percent_fully_vaccinated), y = percent_fully_vaccinated, fill = country)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Top 10 Countries by % of Population Fully Vaccinated",
+       x = "Country",
+       y = "% of Population Fully Vaccinated") +
+  scale_fill_viridis_d(begin = 0.3, end = 0.7, direction = -1) +
+  theme(legend.title = element_blank())
+
+# This plots the top 10 countries by percentage of the population that's fully vaccinated, with the bars filled with colors from the Viridis palette.
+
+
+```
+Map
+```{r}
+# Load the libraries
+library(ggplot2)
+library(maps)
+library(dplyr)
+library(viridis)
+
+# Assuming you have your data in a dataframe named 'vaccine_data' with columns 'country', 'doses_per_100', 'total_doses', 'percent_vaccinated', and 'percent_fully_vaccinated'
+# vaccine_data <- read.csv("C:/info vis/project/Worldwide Vaccine Data.csv")
+
+# Example of what your data might look like
+vaccine_data <- data.frame(
+  country = c("Afghanistan", "Albania", "Algeria","Angola", "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde", "Central African Republic", "Chad", "Chile", "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba", "Curaçao", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominican Rep.", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "French Polynesia", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Ivory Coast", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Lithuania", "Luxembourg", "Macau", "Madagascar", "Mainland China", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Mauritania", "Mauritius", "Mexico", "Moldova", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nepal", "Netherlands", "New Caledonia", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Macedonia", "Norway", "Oman", "Pakistan", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Republic of the Congo", "Romania", "Russia", "Rwanda", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "São Tomé and Príncipe", "Saudi Arabia", "Senegal", "Serbia", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "U.A.E.", "U.K.", "Uganda", "Ukraine", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "West Bank & Gaza", "Yemen", "Zambia", "Zimbabwe"
+),
+  doses_per_100 = c(33, 106, 35,74, 252, 73, 164, 251, 228, 138, 94, 212, 211, 133, 183, 258, 129, 36, 264, 128, 58, 135, 229, 296, 66, 25, 0, 274, 15, 257, 156, 50, 24, 330, 179, 98, 20, 251, 132, 379, 163, 150, 174, 226, 35, 151, 227, 101, 175, 36, 159, 67, 47, 174, 238, 229, 178, 26, 35, 79, 229, 70, 206, 81, 120, 69, 35, 122, 4, 173, 275, 171, 223, 161, 165, 187, 50, 225, 206, 238, 92, 51, 296, 100, 113, 44, 165, 100, 196, 52, 155, 151, 85, 59, 90, 55, 163, 221, 284, 8, 250, 34, 227, 179, 22, 274, 90, 206, 176, 85, 170, 109, 152, 96, 119, 39, 211, 208, 166, 243, 186, 31, 51, 89, 227, 142, 147, 205, 8, 135, 267, 157, 152, 270, 268, 15, 87, 128, 207, 67, 66, 228, 106, 199, 17, 123, 79, 258, 106, 144, 93, 57, 65, 251, 21, 222, 184, 32, 87, 248, 197, 29, 272, 202, 62, 205, 153, 42, 199, 113, 113, 183, 139, 255, 226, 59, 71, 191, 255, 214, 98, 133, 275, 80, 4, 71, 83
+),
+  total_doses = c(12526397, 3025728, 15267442,23701049, 113272665, 2150112, 174215, 63634307, 20263306, 13857111, 364701, 3476633, 344352422, 381013, 17358735, 29593429, 501952, 4232541, 2011426, 14690530, 1924950, 3121142, 482332527, 1283392, 4605190, 5117982, 30480, 45217130, 3998508, 96657606, 859940, 2354281, 3891785, 62630785, 90046356, 835021, 17435502, 12666724, 5356912, 42902003, 256029, 1797542, 18600667, 13164483, 338051, 16185178, 39357012, 101068826, 11289175, 488738, 2103130, 773579, 52509414, 1551808, 13160054, 153788820, 497169, 572672, 815861, 2930677, 190625555, 21400939, 22059587, 90507, 20004849, 8749048, 673091, 953690, 512556, 16850623, 20462274, 16701238, 805469, 2201655453, 447461191, 154773070, 19557364, 11098406, 18623802, 143542826, 23755644, 1508319, 374040614, 10057975, 20918681, 23063539, 193491, 1837224, 8256563, 3383537, 11111066, 2895716, 5814699, 1259488, 4460668, 3716080, 4541773, 1371892, 1791888, 2379808, 3488058000, 6367571, 72447190, 951419, 4345592, 1378418, 4053878, 2612729, 225063079, 2266205, 5492919, 679171, 55363895, 29140427, 64549994, 972893, 60403215, 36104942, 478127, 11962926, 12144072, 7187711, 102292641, 1862610, 12145560, 7086050, 317696373, 8696911, 711981, 9514267, 86812329, 169779996, 57837829, 27762439, 7603722, 833210, 16827486, 184226161, 26106436, 122977, 73301, 449439, 227825, 68148406, 2709648, 8534688, 6158679, 14727569, 5754313, 2996643, 625956, 8726329, 38050611, 129647782, 2310167, 104536856, 40116590, 13711970, 505699, 25537528, 16886862, 4940436, 64721772, 18871161, 35994687, 142635014, 1984560, 3396543, 207744, 1580898, 13241221, 152543341, 8286809, 24922054, 151248820, 26299538, 31668577, 632905664, 8832620, 71888007, 293584, 37860994, 265336568, 3748571, 1242982, 12655676, 12222754
+),
+  percent_vaccinated = c(30, 47, 18,47, 92, 38, 85, 88, 78, 54, 45, 76, 92, 57, 69, 81, 65, 31, 92, 64, 29, 73, 89, 99, 30, 21, 0.2, 92, 14, 92, 65, 42, 24, 95, 85, 52, 10, 91, 57, 95, 69, 56, 65, 82, 33, 68, 88, 54, 72, 20, 65, 44, 38, 80, 82, 81, 68, 14, 23, 44, 78, 40, 74, 39, 53, 48, 33, 63, 3.6, 66, 93, 66, 86, 75, 75, 79, 29, 83, 74, 84, 51, 29, 83, 48, 59, 27, 82, 49, 82, 25, 82, 70, 40, 47, 79, 34, 70, 78, 99, 7.6, 94, 25, 88, 75, 16, 95, 46, 89, 78, 42, 70, 47, 69, 61, 64, 24, 96, 74, 67, 87, 94, 26, 36, 41, 81, 65, 71, 83, 4.2, 56, 93, 72, 60, 95, 99, 13, 42, 61, 84, 33, 34, 97, 59, 79, 12, 48, 55, 91, 48, 61, 51, 50, 41, 87, 20, 88, 79, 25, 46, 76, 71, 19, 92, 57, 54, 82, 68, 28, 88, 54, 62, 69, 63, 99, 81, 43, 36, 80, 87, 63, 48, 78, 94, 43, 3.5, 60, 44
+),
+  percent_fully_vaccinated = c(28, 44, 15,26, 84, 33, 79, 85, 77, 49, 43, 75, 79, 54, 68, 80, 57, 23, 89, 54, 26, 62, 83, 99, 30, 16, 0.2, 89, 12, 84, 56, 41, 23, 93, 73, 47, 7.8, 85, 55, 88, 63, 54, 65, 82, 31, 57, 82, 40, 67, 16, 64, 43, 33, 72, 79, 79, 67, 12, 19, 34, 76, 30, 71, 35, 42, 26, 21, 49, 2.1, 59, 91, 64, 80, 70, 65, 71, 20, 82, 68, 80, 45, 25, 82, 45, 57, 21, 63, 45, 79, 21, 73, 68, 35, 44, 76, 18, 67, 75, 99, 7.3, 91, 20, 86, 73, 13, 94, 34, 86, 65, 40, 67, 46, 64, 61, 51, 21, 84, 69, 64, 84, 91, 23, 30, 40, 76, 61, 61, 75, 3.5, 50, 87, 68, 60, 87, 99, 12, 42, 55, 73, 30, 29, 90, 48, 74, 8.3, 47, 44, 90, 47, 59, 38, 42, 36, 86, 20, 87, 68, 19, 41, 74, 70, 13, 87, 55, 50, 77, 61, 18, 74, 51, 55, 64, 62, 99, 76, 29, 34, 68, 84, 53, 44, 52, 89, 38, 2.6, 48, 32
+)
+)
+
+# Get the map data
+world_map <- map_data("world")
+
+# Merge your vaccine data with the map data
+mapped_data <- merge(world_map, vaccine_data, by.x = "region", by.y = "country", all.x = TRUE)
+
+ggplot(data = mapped_data, aes(x = long, y = lat, group = group, fill = percent_fully_vaccinated)) +
+  geom_polygon(color = "gray", linewidth = 0.25) + # Updated line thickness specification
+  scale_fill_viridis(option = "magma", direction = -1, na.value = "lightgray", name = "% Fully Vaccinated") +
+  labs(
+    title = "COVID-19 Vaccination Rates by Country",
+    subtitle = "Percentage of population fully vaccinated",
+    caption = "Data Source: [https://www.kaggle.com/datasets/anandhuh/latest-worldwide-vaccine-data]"
+  ) +
+  theme_minimal() + # A cleaner theme
+  theme(legend.position = "bottom") + # Move legend to bottom
+  guides(fill = guide_colorbar(barwidth = 10, barheight = .5)) # Adjust legend appearance
+
+```
+```{r}
+# North American countries list
+north_america_countries <- c("United States", "Canada", "Mexico", 
+                             "Guatemala", "Belize", "El Salvador", 
+                             "Honduras", "Nicaragua", "Costa Rica", "Panama", 
+                             "Bahamas", "Cuba", "Jamaica", "Haiti", 
+                             "Dominican Rep.", "Antigua and Barbuda", 
+                             "Saint Kitts and Nevis", "Dominica", 
+                             "Saint Lucia", "Saint Vincent and the Grenadines", 
+                             "Barbados", "Grenada", "Trinidad and Tobago", 
+                             "Aruba", "Curaçao", "Sint Maarten", 
+                             "Bonaire, Sint Eustatius and Saba")
+
+# Filter the vaccine data for North American countries
+north_america_vaccine_data <- vaccine_data[vaccine_data$country %in% north_america_countries, ]
+
+# Merge the filtered vaccine data with the map data
+north_america_mapped_data <- merge(world_map, north_america_vaccine_data, by.x = "region", by.y = "country", all.x = TRUE)
+# Plot the map for North America with geographic limits
+ggplot(data = north_america_mapped_data, aes(x = long, y = lat, group = group, fill = percent_fully_vaccinated)) +
+  geom_polygon(color = "gray", linewidth = 0.25) +
+  scale_fill_viridis(option = "magma", direction = -1, na.value = "lightgray", name = "% Fully Vaccinated") +
+  coord_fixed(1.3) +  # Use a fixed aspect ratio to avoid distortion
+  xlim(-170, -50) +  # Set longitude limits to cover North America
+  ylim(10, 85) +  # Set latitude limits to cover North America
+  labs(
+    title = "COVID-19 Vaccination Rates in North America",
+    subtitle = "Percentage of population fully vaccinated",
+    caption = "Data Source: [https://www.kaggle.com/datasets/anandhuh/latest-worldwide-vaccine-data]"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  guides(fill = guide_colorbar(barwidth = 10, barheight = .5))
+
+```
+```{r}
+library(ggplot2)
+library(maps)
+
+# Simulating GDP per capita data for the sake of demonstration
+set.seed(123) # For reproducibility
+vaccine_data$gdp_per_capita <- runif(nrow(vaccine_data), min = 1000, max = 60000)
+
+# Ensure percent_fully_vaccinated and gdp_per_capita are numeric
+vaccine_data$percent_fully_vaccinated <- as.numeric(vaccine_data$percent_fully_vaccinated)
+vaccine_data$gdp_per_capita <- as.numeric(vaccine_data$gdp_per_capita)
+# Perform the correlation test
+cor_test <- cor.test(vaccine_data$percent_fully_vaccinated, vaccine_data$gdp_per_capita, use = "complete.obs")
+
+# Plotting
+ggplot(vaccine_data, aes(x = gdp_per_capita, y = percent_fully_vaccinated)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal() +
+  labs(title = paste("Correlation between GDP per Capita and Vaccination Rate: r =",
+                     round(cor_test$estimate, 2)),
+       x = "GDP per Capita", y = "% Fully Vaccinated")
+top_vaccinated_countries <- vaccine_data %>%
+  arrange(desc(percent_fully_vaccinated)) %>%
+  select(country, percent_fully_vaccinated)
+
+print(head(top_vaccinated_countries, 10)) # Displays the top 10
+
+```
+Network Graph
+```{r}
+library(igraph)
+
+# Sample data frame
+data <- data.frame(
+  country = c("Afghanistan", "Albania", "Algeria", "Angola", "Argentina"),
+  fully_vaccinated_perc = c(28, 44, 15, 26, 84)
+)
+
+# Create an empty graph
+g <- graph.empty(n = nrow(data), directed = FALSE)
+
+# Add the country names as vertex attributes
+V(g)$name <- data$country
+
+# Define a threshold for connecting nodes (countries)
+threshold <- 5
+
+# Add edges based on the threshold criteria, handling NA values
+for (i in 1:nrow(data)) {
+  for (j in (i+1):nrow(data)) {
+    if (!is.na(data$fully_vaccinated_perc[i]) && !is.na(data$fully_vaccinated_perc[j])) {
+      if (abs(data$fully_vaccinated_perc[i] - data$fully_vaccinated_perc[j]) <= threshold) {
+        g <- add_edges(g, c(i, j))
+      }
+    }
+  }
+}
+
+
+# Plot the network
+plot(g, vertex.label = V(g)$name, vertex.size = 15, main = "Network of Countries by Vaccination Similarity")
+```
+
